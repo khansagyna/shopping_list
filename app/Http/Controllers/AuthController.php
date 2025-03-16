@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json(['message' => 'User registered successfully'], 201);
+        return response()->json(['message' => 'User registered successfully']);
     }
 
     // Login User
@@ -43,9 +44,6 @@ class AuthController extends Controller
             ]);
         }
 
-        // Hapus token lama sebelum buat token baru
-        $user->tokens()->delete();
-        
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -57,20 +55,19 @@ class AuthController extends Controller
 
     // Logout User
     public function logout(Request $request)
-{
-    \Log::info('User trying to logout', ['user' => auth()->user()]);
-    
-    if (!auth()->check()) {
-        return response()->json([
-            'message' => 'User not authenticated',
-            'debug' => false
-        ], 401);
+    {
+        if (!$request->user()) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+
+        $request->user()->tokens()->delete();
+
+        return response()->json(['message' => 'Logged out successfully']);
     }
 
-    auth()->user()->tokens()->delete();
-
-    return response()->json(['message' => 'Logged out successfully']);
-}
-
-
+    // Get User Info
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
+    }
 }
